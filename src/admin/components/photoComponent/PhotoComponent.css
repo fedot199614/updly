@@ -1,0 +1,11 @@
+.container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: 40vh 30vh 30vh;
+    grid-gap: 10px;
+
+}
+.header > img {
+    grid-column: 1/ span 4;
+    grid-row: 1 / span 6;
+}
