@@ -5,7 +5,8 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint \"src\"",
-    "start": "dotenv -c '.env' -- node dist/app"
+    "start": "dotenv -c '.env' -- node dist/app.js",
+    "dev": "dotenv -c '.env' -- tsx watch src/app.ts"
   },
   "dependencies": {
     "@adminjs/express": "^6.1.0",
@@ -33,7 +34,8 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "prettier": "^3.1.0",
     "tslib": "^2.5.0",
-    "typescript": "^5.0.4"
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   },
   "name": "e-commerce"
 }
