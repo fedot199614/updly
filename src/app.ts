@@ -1,9 +1,9 @@
-import { createServer } from "./server/create-server.js";
-import routes from "./server/routes/api.routes.js";
+import { createServer } from "@/backend/server/init-server";
+import routes from "@/backend/routes/api.routes";
 
-import initializeDb from "./db/create-db.js";
-import initializeAdminApp from "./admin/create-admin.js";
-import adminOptions from "./admin/options.js";
+import initializeDb from "@/backend/db/init-db";
+import initializeAdminApp from "@/admin/init-admin";
+import adminOptions from "@/admin/options";
 
 const port = process.env.PORT || 3000;
 

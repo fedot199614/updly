@@ -1,6 +1,6 @@
 import { DefaultAuthProvider } from 'adminjs';
-import { componentLoader } from './components/component-loader.js';
-import { DEFAULT_ADMIN } from './constants.js';
+import { componentLoader } from '@/admin/components/component-loader';
+import { DEFAULT_ADMIN } from '@/admin/constants';
 
 
 const provider = new DefaultAuthProvider({

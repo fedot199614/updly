@@ -1,5 +1,4 @@
-import Profile from '../../db/models/profile.js';
-import { Components } from '../components/component-loader.js';
+import Profile from '@/backend/db/models/profile';
 
 export const profileResources = () => ({
     resource: Profile,

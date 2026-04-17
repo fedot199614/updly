@@ -1,5 +1,4 @@
-import User from '../../db/models/user.js';
-import { Components } from '../components/component-loader.js';
+import User from '@/backend/db/models/user';
 
 export const userResources = () => ({
     resource: User,

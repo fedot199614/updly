@@ -1,5 +1,5 @@
-import Photo from '../../db/models/photo.js';
-import { Components } from '../components/component-loader.js';
+import Photo from '@/backend/db/models/photo';
+import { Components } from '@/admin/components/component-loader';
 
 export const photoResourceOptions = () => ({
     resource: Photo,
