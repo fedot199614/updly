@@ -1,4 +1,4 @@
-import "@/env.config.js";
+import "@/env.helper.js";
 import { createServer } from "@/backend/server/init-server.js";
 import routes from "@/backend/routes/api.routes.js";
 

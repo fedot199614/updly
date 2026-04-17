@@ -6,6 +6,7 @@ const websiteSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      index: true
     },
 
     name: {
@@ -28,7 +29,5 @@ const websiteSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-websiteSchema.index({ url: 1 });
 
 export const Website = mongoose.model("Website", websiteSchema);
