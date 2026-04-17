@@ -26,3 +26,7 @@ export const createWebsiteService = async ({
 export const getWebsitesService = async () => {
   return await Website.find().sort({ createdAt: -1 });
 };
+
+export const getWebsiteByIdService = async (id: string) => {
+  return await Website.findById(id);
+};
