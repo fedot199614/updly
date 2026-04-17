@@ -1,5 +1,5 @@
-import { env } from "@/env.helper";
+import { getEnv } from "@/env.helper";
 
 export const dbConfig = {
-  DATABASE_URL: env.DATABASE_URL,
+  DATABASE_URL: getEnv("DATABASE_URL"),
 };

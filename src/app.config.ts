@@ -1,6 +1,5 @@
-import { env } from "@/env.helper";
+import { getEnv } from "@/env.helper";
 
 export const appConfig = {
-  PORT: env.PORT || 3000,
-  
+  PORT: getEnv("PORT", { default: "3000" }),
 };

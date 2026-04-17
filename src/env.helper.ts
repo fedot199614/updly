@@ -1,7 +1,13 @@
-export const env = new Proxy(process.env, {
-  get(target, prop: string) {
-    const value = target[prop];
-    if (!value) throw new Error(`${prop} is not defined`);
-    return value;
-  },
-}) as Record<string, string>;
+type EnvOptions = {
+  default?: string;
+};
+
+export const getEnv = (name: string, options?: EnvOptions): string => {
+  const value = process.env[name];
+
+  if (value) return value;
+
+  if (options?.default !== undefined) return options.default;
+
+  throw new Error(`${name} is not defined`);
+};
