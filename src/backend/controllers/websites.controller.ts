@@ -1,7 +1,7 @@
 // src/backend/controllers/websites.controller.ts
 
 import { Request, Response } from "express";
-import { createWebsiteService } from "@/backend/services/websites.service.js";
+import { createWebsiteService, getWebsitesService,  } from "@/backend/services/websites.service.js";
 
 export const createWebsite = async (req: Request, res: Response) => {
   try {
@@ -20,6 +20,15 @@ export const createWebsite = async (req: Request, res: Response) => {
       return res.status(409).json({ error: "Website already exists" });
     }
 
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getWebsites = async (_req: Request, res: Response) => {
+  try {
+    const websites = await getWebsitesService();
+    return res.json(websites);
+  } catch {
     return res.status(500).json({ error: "Internal server error" });
   }
 };

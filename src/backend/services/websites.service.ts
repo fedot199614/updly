@@ -22,3 +22,7 @@ export const createWebsiteService = async ({
 
   return website;
 };
+
+export const getWebsitesService = async () => {
+  return await Website.find().sort({ createdAt: -1 });
+};
