@@ -42,7 +42,7 @@ export const photoResourceOptions = () => ({
         },
         actions: {
             list: {
-                before: async (request) => {
+                before: async (request: any) => {
                     request.query.perPage = 100;
                     return request;
                 }

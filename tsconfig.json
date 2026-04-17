@@ -1,30 +1,22 @@
 {
   "compilerOptions": {
-    "jsx": "react",
+    "target": "ES2021",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "target": "ES2021",
-    "declaration": false,
-    "removeComments": true,
-    "emitDecoratorMetadata": false,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "allowJs": true,
-    "sourceMap": false,
+
+    "rootDir": "./src",
     "outDir": "./dist",
+
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
     },
-    "incremental": true,
+
+    "strict": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true,
     "esModuleInterop": true,
+    "resolveJsonModule": true
   },
-  "exclude": [
-    "node_modules"
-  ],
-  "include": [
-    "**/src/**/*"
-  ]
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }
