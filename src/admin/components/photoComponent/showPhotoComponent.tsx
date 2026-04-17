@@ -1,7 +1,7 @@
 import React from 'react'
 //import { Box } from 'adminjs'
 
-const PhotoPreview = (props) => {
+const PhotoPreview = (props: any) => {
     const { resource, action, record } = props
 
     let imgSrc = record.params.imgLink

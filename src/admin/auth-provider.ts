@@ -1,12 +1,12 @@
 import { DefaultAuthProvider } from 'adminjs';
 import { componentLoader } from '@/admin/components/component-loader';
-import { DEFAULT_ADMIN } from '@/admin/constants';
+import { adminConfig } from '@/admin/config/admin.config';
 
 
 const provider = new DefaultAuthProvider({
   componentLoader,
   authenticate: async ({ email, password }) => {
-    if (email === DEFAULT_ADMIN.email) {
+    if (email === adminConfig.DEFAULT_ADMIN.email) {
       return { email };
     }
 

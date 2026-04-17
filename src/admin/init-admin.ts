@@ -1,6 +1,7 @@
 import AdminJS, { AdminJSOptions } from 'adminjs';
 import { buildAuthenticatedRouter } from '@adminjs/express';
 import provider from '@/admin/auth-provider';
+import { adminConfig } from '@/admin/config/admin.config';
 
 const initializeAdminApp = async ({ options }: { options: AdminJSOptions }) => {
 
@@ -12,20 +13,16 @@ const initializeAdminApp = async ({ options }: { options: AdminJSOptions }) => {
     admin.watch();
   }
 
-  if (!process.env.COOKIE_SECRET) {
-    throw new Error("COOKIE_SECRET is not defined");
-  }
-
   const router = buildAuthenticatedRouter(
     admin,
     {
-      cookiePassword: process.env.COOKIE_SECRET,
-      cookieName: 'adminjs',
+      cookiePassword: adminConfig.COOKIE_SECRET,
+      cookieName: adminConfig.COOKIE_NAME,
       provider,
     },
     null,
     {
-      secret: process.env.COOKIE_SECRET,
+      secret: adminConfig.COOKIE_SECRET,
       saveUninitialized: true,
       resave: true,
     },
