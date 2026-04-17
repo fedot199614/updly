@@ -23,20 +23,20 @@ const diffSchema = new Schema(
 
 const updateSchema = new Schema(
   {
-    website: {
+    websiteId: {
       type: Types.ObjectId,
       ref: 'Website',
       required: true,
       index: true,
     },
 
-    snapshotBefore: {
+    snapshotBeforeId: {
       type: Types.ObjectId,
       ref: 'Snapshot',
       required: true,
     },
 
-    snapshotAfter: {
+    snapshotAfterId: {
       type: Types.ObjectId,
       ref: 'Snapshot',
       required: true,
@@ -44,7 +44,8 @@ const updateSchema = new Schema(
 
     changes: {
       type: [diffSchema],
-      required: true,
+      required: false,
+      default: [],
     },
 
     hasChanges: {
@@ -63,5 +64,7 @@ const updateSchema = new Schema(
     versionKey: false,
   }
 );
+
+updateSchema.index({ websiteId: 1, createdAt: -1 });
 
 export const UpdateModel = model('Update', updateSchema);
