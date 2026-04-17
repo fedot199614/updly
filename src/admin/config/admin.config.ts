@@ -1,4 +1,4 @@
-import { getEnv } from "@/env.helper";
+import { getEnv } from "@/env.helper.js";
 
 export const adminConfig = {
 

@@ -1,4 +1,4 @@
-import Profile from '@/backend/db/models/profile';
+import Profile from '@/backend/db/models/profile.js';
 
 export const profileResources = () => ({
     resource: Profile,

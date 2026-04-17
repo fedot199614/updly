@@ -4,10 +4,10 @@ import { AdminJSOptions } from 'adminjs';
 import { Database, Resource } from '@adminjs/mongoose';
 import AdminJS from 'adminjs';
 
-import { componentLoader } from '@/admin/components/component-loader';
-import { photoResourceOptions } from '@/admin/resources/photo';
-import { userResources } from '@/admin/resources/user';
-import { profileResources } from '@/admin/resources/profile';
+import { componentLoader } from '@/admin/components/component-loader.js';
+import { photoResourceOptions } from '@/admin/resources/photo.js';
+import { userResources } from '@/admin/resources/user.js';
+import { profileResources } from '@/admin/resources/profile.js';
 
 AdminJS.registerAdapter({ Database, Resource });
 

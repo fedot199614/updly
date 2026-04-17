@@ -1,7 +1,7 @@
 import AdminJS, { AdminJSOptions } from 'adminjs';
 import { buildAuthenticatedRouter } from '@adminjs/express';
-import provider from '@/admin/auth-provider';
-import { adminConfig } from '@/admin/config/admin.config';
+import provider from '@/admin/auth-provider.js';
+import { adminConfig } from '@/admin/config/admin.config.js';
 
 const initializeAdminApp = async ({ options }: { options: AdminJSOptions }) => {
 

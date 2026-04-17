@@ -1,10 +1,11 @@
-import { createServer } from "@/backend/server/init-server";
-import routes from "@/backend/routes/api.routes";
+import "@/env.config.js";
+import { createServer } from "@/backend/server/init-server.js";
+import routes from "@/backend/routes/api.routes.js";
 
-import initializeDb from "@/backend/db/init-db";
-import initializeAdminApp from "@/admin/init-admin";
-import adminOptions from "@/admin/options";
-import { appConfig } from "@/app.config";
+import initializeDb from "@/backend/db/init-db.js";
+import initializeAdminApp from "@/admin/init-admin.js";
+import adminOptions from "@/admin/options.js";
+import { appConfig } from "@/app.config.js";
 
 const start = async () => {
   try {

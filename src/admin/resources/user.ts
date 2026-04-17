@@ -1,4 +1,4 @@
-import User from '@/backend/db/models/user';
+import User from '@/backend/db/models/user.js';
 
 export const userResources = () => ({
     resource: User,
