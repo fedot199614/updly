@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createProjectService, getProjectsService, getProjectByIdService } from "@/backend/services/projects.service.js";
+import { createProjectService, getProjectsService, getProjectByIdService, deleteProjectService } from "@/backend/services/projects.service.js";
 
 
 export const createProject = async (req: Request, res: Response) => {
@@ -15,7 +15,13 @@ export const getProjects = async (_req: Request, res: Response) => {
 };
 
 export const getProjectById = async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const project = await getProjectByIdService(id);
+    const { projectId } = req.params;
+    const project = await getProjectByIdService(projectId);
     return res.json(project);
 };
+
+export const deleteProject = async (req: Request, res: Response) => {
+  const project = (req as any).project;
+  await deleteProjectService(project._id);
+  return res.status(204).send();
+}

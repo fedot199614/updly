@@ -14,12 +14,6 @@ export const createPageService = async ({
 }) => {
     const normalizedUrl = url.trim().toLowerCase();
 
-    const project = await Project.findById(projectId);
-
-    if (!project) {
-        throw new AppError(ERRORS.PROJECT_NOT_FOUND, 404);
-    }
-
     const existing = await Page.findOne({
         projectId,
         url: normalizedUrl,
@@ -37,27 +31,13 @@ export const createPageService = async ({
 };
 
 export const getPagesService = async (projectId: string) => {
-  return await Page.find({ projectId }).sort({ createdAt: -1 });
-};
-
-export const getPageByIdService = async (id: string, projectId: string) => {
-
-   const page = await Page.findOne({ _id: id, projectId });
-
-   if (!page) {
-       throw new AppError(ERRORS.PAGE_NOT_FOUND, 404);
-   }
-     
-  return page;
+    return await Page.find({ projectId }).sort({ createdAt: -1 });
 };
 
 export const getPageByProjectIdService = async (projectId: string) => {
-
-    const project = await Project.findById(projectId);
-
-    if (!project) {
-        throw new AppError(ERRORS.PROJECT_NOT_FOUND, 404);
-    }
-
     return await Page.find({ projectId }).sort({ createdAt: -1 });
+};
+
+export const deletePageService = async (pageId: string) => {
+  await Page.findByIdAndDelete(pageId);
 };

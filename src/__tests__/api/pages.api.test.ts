@@ -2,6 +2,7 @@ import request from 'supertest';
 import { createTestApp } from '@/__tests__/api/api-test-app.js';
 import { Project } from '@/backend/db/models/project.model.js';
 import { Page } from '@/backend/db/models/page.model.js';
+import { randomInt } from 'crypto';
 
 const app = createTestApp();
 
@@ -9,7 +10,7 @@ describe('Pages Routes', () => {
   let projectId: string;
 
   beforeEach(async () => {
-    const project = await Project.create({ name: 'Test Project' });
+    const project = await Project.create({ name: 'Test Project' + randomInt(1000) });
     projectId = project._id.toString();
   });
 
@@ -83,7 +84,7 @@ describe('Pages Routes', () => {
     });
   });
 
-  describe('GET /api/projects/:projectId/pages/:id', () => {
+  describe('GET /api/projects/:projectId/pages/:pageId', () => {
     it('should return page by id', async () => {
       const page = await Page.create({ projectId, url: 'https://example.com' });
 
@@ -111,4 +112,38 @@ describe('Pages Routes', () => {
       expect(response.status).toBe(404);
     });
   });
+
+  describe('DELETE /api/projects/:projectId/pages/:pageId', () => {
+    it("should delete page", async () => {
+      const page = await Page.create({ projectId, url: "https://test.com" });
+
+      const res = await request(app).delete(
+        `/api/projects/${projectId}/pages/${page._id}`
+      );
+
+      expect(res.status).toBe(204);
+
+      const exists = await Page.findById(page._id);
+      expect(exists).toBeNull();
+    });
+
+    it("should return 400 for invalid pageId", async () => {
+      const res = await request(app).delete(
+        `/api/projects/${projectId}/pages/invalid`
+      );
+
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 404 if page not found", async () => {
+      const fakeId = '507f1f77bcf86cd788439011';
+
+      const res = await request(app).delete(
+        `/api/projects/${projectId}/pages/${fakeId}`
+      );
+
+      expect(res.status).toBe(404);
+    });
+  });
+
 });

@@ -1,7 +1,7 @@
 import express from 'express';
 import routes from '@/backend/routes/api.routes.js';
-import { errorHandler } from '@/backend/server/middlewares/error.middleware.js';
-import { notFound } from '@/backend/server/middlewares/not-found.middleware.js';
+import { errorHandler } from '@/backend/server/middlewares/error.js';
+import { notFound } from '@/backend/server/middlewares/not-found.js';
 
 export const createTestApp = () => {
   const app = express();

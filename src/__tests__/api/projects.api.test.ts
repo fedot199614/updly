@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { createTestApp } from '@/__tests__/api/api-test-app.js';
 import { Project } from '@/backend/db/models/project.model.js';
+import { Page } from '@/backend/db/models/page.model.js';
 
 const app = createTestApp();
 
@@ -60,7 +61,7 @@ describe('Projects Routes', () => {
     });
   });
 
-  describe('GET /api/projects/:id', () => {
+  describe('GET /api/projects/:projectId', () => {
     it('should return project by id', async () => {
       const project = await Project.create({ name: 'Test Project' });
 
@@ -78,6 +79,28 @@ describe('Projects Routes', () => {
       const fakeId = '507f1f77bcf86cd799439011';
       const response = await request(app).get(`/api/projects/${fakeId}`);
       expect(response.status).toBe(404);
+    });
+  });
+
+  describe('DELETE /api/projects/:projectId', () => {
+    it("should delete project with pages", async () => {
+      const project = await Project.create({ name: "test" });
+      const page = await Page.create({
+        projectId: project._id,
+        url: "https://test.com",
+      });
+
+      const res = await request(app).delete(
+        `/api/projects/${project._id}`
+      );
+
+      expect(res.status).toBe(204);
+
+      const projectExists = await Project.findById(project._id);
+      const pageExists = await Page.findById(page._id);
+
+      expect(projectExists).toBeNull();
+      expect(pageExists).toBeNull();
     });
   });
 });

@@ -1,28 +1,35 @@
 import { Router } from "express";
 import { check } from "express-validator";
-import { createPage, getPageById, getPages } from "@/backend/controllers/pages.controller.js";
-import { handleValidation } from "@/backend/server/middlewares/handle-validation.middleware.js";
-import { asyncHandler } from "@/backend/server/middlewares/async-handler.middleware.js";
+import { createPage, getPageById, getPages, deletePage } from "@/backend/controllers/pages.controller.js";
+import { handleValidation } from "@/backend/server/middlewares/handle-validation.js";
+import { asyncHandler } from "@/backend/server/middlewares/async-handler.js";
+import { validatePageExists } from "@/backend/server/middlewares/validate-page-exists.js";
+import { validateObjectId } from "@/backend/server/middlewares/validate-object-id.js";
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.post(
-  "/:projectId/pages",
-  [check("projectId").isMongoId(), check("url").not().isEmpty()],
+  "/",
+  [check("url").not().isEmpty()],
   handleValidation,
   asyncHandler(createPage)
 );
 router.get(
-  "/:projectId/pages",
-  [check("projectId").isMongoId()],
-  handleValidation,
+  "/",
   asyncHandler(getPages)
 );
 router.get(
-  "/:projectId/pages/:id",
-  [check("id").isMongoId(), check("projectId").isMongoId()],
-  handleValidation,
+  "/:pageId",
+  validateObjectId("pageId"),
+  validatePageExists,
   asyncHandler(getPageById)
+);
+
+router.delete(
+  "/:pageId",
+  validateObjectId("pageId"),
+  validatePageExists,
+  asyncHandler(deletePage)
 );
 
 export default router;

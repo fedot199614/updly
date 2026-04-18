@@ -1,6 +1,7 @@
 import { Project } from "@/backend/db/models/project.model.js";
 import { ERRORS } from "@/shared/errors/errors.js";
 import { AppError } from "@/shared/errors/app-error.js";
+import { Page } from "@/backend/db/models/page.model.js";
 
 export const createProjectService = async ({
     name,
@@ -34,4 +35,9 @@ export const getProjectByIdService = async (id: string) => {
         throw new AppError(ERRORS.PROJECT_NOT_FOUND, 404);
     }
     return project;
+};
+
+export const deleteProjectService = async (projectId: string) => {
+  await Page.deleteMany({ projectId });
+  await Project.findByIdAndDelete(projectId);
 };
