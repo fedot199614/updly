@@ -18,7 +18,6 @@ const pageSchema = new Schema(
 
         name: {
             type: String,
-            unique: true,
             default: null,
         },
 
