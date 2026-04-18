@@ -1,7 +1,7 @@
 import { Page } from "@/backend/db/models/page.model.js";
-import { Project } from "@/backend/db/models/project.model.js";
 import { ERRORS } from "@/shared/errors/errors.js";
 import { AppError } from "@/shared/errors/app-error.js";
+import { monitorQueue } from "@/queue/queues/monitor.queue.js";
 
 export const createPageService = async ({
     projectId,
@@ -23,11 +23,29 @@ export const createPageService = async ({
         throw new AppError(ERRORS.PAGE_EXISTS, 409);
     }
 
-    return await Page.create({
+    const page = await Page.create({
         projectId,
         url: normalizedUrl,
         name,
     });
+
+    console.log("Adding job to queue...");
+
+    await monitorQueue.add(
+        "monitor-page",
+        {
+            pageId: page._id.toString(),
+            url: page.url,
+        },
+        {
+            jobId: `monitor:${page._id}`,
+            repeat: {
+                every: 5 * 60 * 1000,
+            },
+        }
+    );
+
+    return page;
 };
 
 export const getPagesService = async (projectId: string) => {
