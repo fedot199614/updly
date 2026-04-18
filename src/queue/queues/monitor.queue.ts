@@ -1,5 +1,5 @@
 import { Queue } from "bullmq";
-import { redisConfig } from "../connection.js";
+import { redisConfig } from "@/queue/connection.js";
 
 export const monitorQueue = new Queue("monitor", {
   connection: redisConfig,
