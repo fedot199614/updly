@@ -1,6 +1,8 @@
 import "@/env.helper.js";
 import { createServer } from "@/backend/server/init-server.js";
 import routes from "@/backend/routes/api.routes.js";
+import { errorHandler } from "@/backend/server/middlewares/error.middleware.js";
+import { notFound } from "@/backend/server/middlewares/not-found.middleware.js";
 
 import initializeDb from "@/backend/db/init-db.js";
 import initializeAdminApp from "@/admin/init-admin.js";
@@ -20,6 +22,8 @@ const start = async () => {
     // Routes
     app.use(admin.options.rootPath, adminRouter);
     app.use("/api", routes);
+    app.use(notFound);
+    app.use(errorHandler);
 
     // Start
     app.listen(appConfig.PORT, () => {

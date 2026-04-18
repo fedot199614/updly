@@ -6,7 +6,7 @@ import projectRoutes from "@/backend/routes/projects.routes.js";
 const router = Router();
 
 router.use("/health", healthRoutes);
-router.use("/projects", pagesRoutes);
 router.use("/projects", projectRoutes);
+router.use("/projects", pagesRoutes);
 
 export default router;

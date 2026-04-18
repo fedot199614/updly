@@ -1,5 +1,7 @@
 import { Page } from "@/backend/db/models/page.model.js";
 import { Project } from "@/backend/db/models/project.model.js";
+import { ERRORS } from "@/shared/errors/errors.js";
+import { AppError } from "@/shared/errors/app-error.js";
 
 export const createPageService = async ({
     projectId,
@@ -13,8 +15,9 @@ export const createPageService = async ({
     const normalizedUrl = url.trim().toLowerCase();
 
     const project = await Project.findById(projectId);
+
     if (!project) {
-        throw new Error("PROJECT_NOT_FOUND");
+        throw new AppError(ERRORS.PROJECT_NOT_FOUND, 404);
     }
 
     const existing = await Page.findOne({
@@ -23,7 +26,7 @@ export const createPageService = async ({
     });
 
     if (existing) {
-        throw new Error("PAGE_EXISTS");
+        throw new AppError(ERRORS.PAGE_EXISTS, 409);
     }
 
     return await Page.create({
@@ -38,9 +41,23 @@ export const getPagesService = async (projectId: string) => {
 };
 
 export const getPageByIdService = async (id: string, projectId: string) => {
-  return await Page.findOne({ _id: id, projectId });
+
+   const page = await Page.findOne({ _id: id, projectId });
+
+   if (!page) {
+       throw new AppError(ERRORS.PAGE_NOT_FOUND, 404);
+   }
+     
+  return page;
 };
 
 export const getPageByProjectIdService = async (projectId: string) => {
+
+    const project = await Project.findById(projectId);
+
+    if (!project) {
+        throw new AppError(ERRORS.PROJECT_NOT_FOUND, 404);
+    }
+
     return await Page.find({ projectId }).sort({ createdAt: -1 });
 };
