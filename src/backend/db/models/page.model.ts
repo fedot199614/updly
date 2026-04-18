@@ -35,7 +35,23 @@ const pageSchema = new Schema(
         checkInterval: {
             type: Number,
             default: 300,
-        }
+        },
+        errorCount: {
+            type: Number,
+            default: 0,
+        },
+        lastErrorAt: {
+            type: Date,
+            default: null,
+        },
+        lastErrorType: {
+            type: String,
+            default: null,
+        },
+        error: {
+            type: String,
+            default: null,
+        },
     },
     {
         timestamps: true,

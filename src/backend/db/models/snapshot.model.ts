@@ -11,7 +11,7 @@ const snapshotSchema = new mongoose.Schema(
 
     html: {
       type: String,
-      required: true,
+      default: null
     },
 
     text: {
@@ -29,6 +29,22 @@ const snapshotSchema = new mongoose.Schema(
       default: Date.now,
       index: true,
     },
+
+    statusCode: {
+      type: Number,
+      default: null,
+    },
+
+    error: {
+      type: String,
+      default: null,
+    },
+
+    errorStack: {
+      type: String,
+      default: null,
+    }
+
   },
   {
     timestamps: false,

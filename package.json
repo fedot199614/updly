@@ -5,9 +5,15 @@
   "scripts": {
     "clean": "rimraf dist",
     "build": "npm run clean && tsc && tsc-alias",
-    "lint": "eslint \"src\"",
-    "start": "cross-env NODE_ENV=production node dist/app.js",
+
     "dev": "cross-env NODE_ENV=development tsx watch src/app.ts",
+    "worker:dev": "tsx watch src/worker.ts",
+
+    "start": "cross-env NODE_ENV=production node dist/app.js",
+    "worker:prod": "node dist/worker.js",
+    
+    "lint": "eslint \"src\"",
+
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

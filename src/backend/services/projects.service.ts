@@ -2,6 +2,7 @@ import { Project } from "@/backend/db/models/project.model.js";
 import { ERRORS } from "@/shared/errors/errors.js";
 import { AppError } from "@/shared/errors/app-error.js";
 import { Page } from "@/backend/db/models/page.model.js";
+import { removeMonitorJob } from "@/queue/queues/utils/remove-monitor-job.js";
 
 export const createProjectService = async ({
     name,
@@ -38,6 +39,12 @@ export const getProjectByIdService = async (id: string) => {
 };
 
 export const deleteProjectService = async (projectId: string) => {
+  const pages = await Page.find({ projectId }); 
+    await Promise.all(
+    pages.map((page) =>
+      removeMonitorJob(page._id.toString())
+    )
+  ); 
   await Page.deleteMany({ projectId });
   await Project.findByIdAndDelete(projectId);
 };

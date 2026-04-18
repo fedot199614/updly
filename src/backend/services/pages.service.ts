@@ -1,7 +1,8 @@
 import { Page } from "@/backend/db/models/page.model.js";
 import { ERRORS } from "@/shared/errors/errors.js";
 import { AppError } from "@/shared/errors/app-error.js";
-import { monitorQueue } from "@/queue/queues/monitor.queue.js";
+import { safeAddJob } from "@/queue/queues/utils/add-job.js";
+import { removeMonitorJob } from "@/queue/queues/utils/remove-monitor-job.js";
 
 export const createPageService = async ({
     projectId,
@@ -31,7 +32,7 @@ export const createPageService = async ({
 
     console.log("Adding job to queue...");
 
-    await monitorQueue.add(
+    await safeAddJob(
         "monitor-page",
         {
             pageId: page._id.toString(),
@@ -40,7 +41,12 @@ export const createPageService = async ({
         {
             jobId: `monitor:${page._id}`,
             repeat: {
-                every: 5 * 60 * 1000,
+                every: 60 * 1000,
+            },
+            attempts: 3,
+            backoff: {
+                type: "exponential",
+                delay: 5000,
             },
         }
     );
@@ -57,5 +63,6 @@ export const getPageByProjectIdService = async (projectId: string) => {
 };
 
 export const deletePageService = async (pageId: string) => {
-  await Page.findByIdAndDelete(pageId);
+    await removeMonitorJob(pageId);
+    await Page.findByIdAndDelete(pageId);
 };
