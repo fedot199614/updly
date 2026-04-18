@@ -1,10 +1,10 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 
 const snapshotSchema = new mongoose.Schema(
   {
-    websiteId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Website",
+    pageId: {
+      type: Types.ObjectId,
+      ref: "Page",
       required: true,
       index: true,
     },

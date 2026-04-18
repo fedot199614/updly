@@ -23,9 +23,9 @@ const diffSchema = new Schema(
 
 const updateSchema = new Schema(
   {
-    websiteId: {
+    pageId: {
       type: Types.ObjectId,
-      ref: 'Website',
+      ref: "Page",
       required: true,
       index: true,
     },
@@ -65,6 +65,6 @@ const updateSchema = new Schema(
   }
 );
 
-updateSchema.index({ websiteId: 1, createdAt: -1 });
+updateSchema.index({ pageId: 1, createdAt: -1 });
 
 export const UpdateModel = model('Update', updateSchema);

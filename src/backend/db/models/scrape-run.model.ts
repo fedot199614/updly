@@ -1,18 +1,19 @@
 import { Schema, model, Types } from "mongoose";
+import { SCRAPE_STATUS } from "@/shared/constants/scrape-status.js";
 
 const scrapeRunSchema = new Schema(
   {
-    websiteId: {
+    pageId: {
       type: Types.ObjectId,
-      ref: "Website",
+      ref: "Page",
       required: true,
       index: true,
     },
 
     status: {
       type: String,
-      enum: ["pending", "running", "success", "failed"],
-      default: "pending",
+      enum: Object.values(SCRAPE_STATUS),
+      default: SCRAPE_STATUS.PENDING,
       index: true,
     },
 
@@ -36,6 +37,6 @@ const scrapeRunSchema = new Schema(
   }
 );
 
-scrapeRunSchema.index({ websiteId: 1, createdAt: -1 });
+scrapeRunSchema.index({ pageId: 1, createdAt: -1 });
 
 export const ScrapeRun = model("ScrapeRun", scrapeRunSchema);
