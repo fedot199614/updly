@@ -3,9 +3,7 @@ import { Page } from "@/backend/db/models/page.model.js";
 import { Snapshot } from "@/backend/db/models/snapshot.model.js";
 import { PAGE_STATUS } from "@/shared/constants/page-status.js";
 import { Job } from "bullmq/dist/esm/classes/job";
-import { extractItems } from "@/backend/services/extract/extract.service.js";
-import { fetchSmart } from "@/backend/services/fetch/fetch.service.js";
-import { normalizeItems } from "@/backend/services/normalize/normalize.service.js";
+import { processPage } from "@/backend/services/pipline/process-page.pipeline.js";
 
 export const processMonitorJob = async (job: Job<any, any, string>) => {
 
@@ -21,23 +19,38 @@ export const processMonitorJob = async (job: Job<any, any, string>) => {
     }
 
     try {
-        const { html } = await fetchSmart(page);
-        const items = extractItems(html, url);
-        const normalizedItems = normalizeItems(items);
 
-        console.log("Extracted items count:", items.length);
-        console.log("First items:", items.slice(0, 3));
+        const { html, rawItems, normalizedItems, hash } = await processPage(page);
+
+        console.log("Extracted items count:", rawItems.length);
         console.log("Normalized items count:", normalizedItems.length);
         console.log("First normalized items:", normalizedItems.slice(0, 3));
-        job.log("Extracted items count: " + items.length);
-        job.log("First items: " + JSON.stringify(items.slice(0, 3), null, 2));
+        job.log("Extracted items count: " + rawItems.length);
         job.log("Normalized items count: " + normalizedItems.length);
         job.log("First normalized items: " + JSON.stringify(normalizedItems.slice(0, 3), null, 2));
 
 
+        const lastSnapshot = await Snapshot.findOne({ pageId })
+        .sort({ createdAt: -1 })
+        .lean();
+
+        // ⚡ если ничего не изменилось — выходим
+        if (lastSnapshot && lastSnapshot.hash === hash) {
+        job.log("No changes detected");
+        
+        await Page.findByIdAndUpdate(pageId, {
+            lastCheckedAt: new Date(),
+        });
+
+        return;
+        }
+
+
         const snapshot = await Snapshot.create({
             pageId,
-            html
+            items: rawItems,
+            normalizedItems,
+            hash
         });
 
         await Page.findByIdAndUpdate(pageId, {
@@ -59,7 +72,6 @@ export const processMonitorJob = async (job: Job<any, any, string>) => {
 
         await Snapshot.create({
             pageId,
-            html: null,
             error: message,
             errorStack: error instanceof Error ? error.stack : null
         });

@@ -9,19 +9,19 @@ const snapshotSchema = new mongoose.Schema(
       index: true,
     },
 
-    html: {
-      type: String,
-      default: null
+    items: {
+      type: Array,
+      default: [],
     },
 
-    text: {
+    normalizedItems: {
+      type: Array,
+      default: [],
+    },
+
+    hash: {
       type: String,
       default: null,
-    },
-
-    metadata: {
-      type: Object,
-      default: {},
     },
 
     createdAt: {
