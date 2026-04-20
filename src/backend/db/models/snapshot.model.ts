@@ -30,11 +30,6 @@ const snapshotSchema = new mongoose.Schema(
       index: true,
     },
 
-    statusCode: {
-      type: Number,
-      default: null,
-    },
-
     error: {
       type: String,
       default: null,

@@ -10,8 +10,7 @@ export const initMonitorWorker = () => {
       await processMonitorJob(job);
     },
     {
-      connection: redisConfig,
-      concurrency: 3,
+      connection: redisConfig
     }
   );
 

@@ -1,5 +1,6 @@
 import { Schema, model, Types } from "mongoose";
 import { PAGE_STATUS } from "@/shared/constants/page-status.js";
+import { PAGE_FETCH_MODE } from "@/shared/constants/page-fetch-mode.js";
 
 const pageSchema = new Schema(
     {
@@ -52,6 +53,11 @@ const pageSchema = new Schema(
             type: String,
             default: null,
         },
+        mode: {
+            type: String,
+            enum: Object.values(PAGE_FETCH_MODE),
+            default: PAGE_FETCH_MODE.AUTO,
+        }
     },
     {
         timestamps: true,
