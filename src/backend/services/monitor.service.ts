@@ -20,12 +20,12 @@ export const processMonitorJob = async (job: Job<any, any, string>) => {
 
     try {
 
-        const { html, rawItems, normalizedItems, hash } = await processPage(page);
+        const { html, blocks, normalizedItems, hash } = await processPage(page);
 
-        console.log("Extracted items count:", rawItems.length);
+        console.log("Extracted items count:", blocks.length);
         console.log("Normalized items count:", normalizedItems.length);
         console.log("First normalized items:", normalizedItems.slice(0, 3));
-        job.log("Extracted items count: " + rawItems.length);
+        job.log("Extracted items count: " + blocks.length);
         job.log("Normalized items count: " + normalizedItems.length);
         job.log("First normalized items: " + JSON.stringify(normalizedItems.slice(0, 3), null, 2));
 
@@ -48,7 +48,7 @@ export const processMonitorJob = async (job: Job<any, any, string>) => {
 
         const snapshot = await Snapshot.create({
             pageId,
-            items: rawItems,
+            items: blocks,
             normalizedItems,
             hash
         });
