@@ -1,27 +1,25 @@
-import { normalizeText, normalizeUrl, generateId } from "@/backend/services/normalize/normalize.utils.js";
+import { normalizeText, normalizeUrl } from "@/backend/services/normalize/normalize.utils.js";
+import { Block } from "@/backend/services/extract/extract.service.js";
 
-
-export const normalizeItems = (items: any[]) => {
-  return items
-    .map(item => {
-      const title = normalizeText(item.title);
-      const description = normalizeText(item.description);
-      const url = normalizeUrl(item.url) ? normalizeUrl(item.url) : item.url;
-
-      const images = (item.images || [])
+export const normalizeBlocks = (blocks: Block[]): Block[] => {
+  return blocks
+    .map((block) => {
+      const text = normalizeText(block.text);
+      const images = block.images
         .map(normalizeUrl)
-        .filter(Boolean)
-        .slice(0, 3);
+        .filter((url): url is string => url !== null);
 
-      const id = generateId(title, url);
+      const links = block.links
+        .map(normalizeUrl)
+        .filter((url): url is string => url !== null);
 
       return {
-        id,
-        title,
-        description,
-        url,
+        id: block.id,
+        text,
         images,
+        links,
       };
     })
+    .filter((block) => block.text.length > 0)
     .sort((a, b) => a.id.localeCompare(b.id));
 };

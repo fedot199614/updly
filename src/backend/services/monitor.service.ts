@@ -1,98 +1,101 @@
-import axios from "axios";
 import { Page } from "@/backend/db/models/page.model.js";
 import { Snapshot } from "@/backend/db/models/snapshot.model.js";
 import { PAGE_STATUS } from "@/shared/constants/page-status.js";
 import { Job } from "bullmq/dist/esm/classes/job";
 import { processPage } from "@/backend/services/pipline/process-page.pipeline.js";
+import { diffNodes, formatDiff } from "@/backend/services/extract/extractors/page.node.diff.js";
+import { PageNode } from "@/backend/services/extract/exctract.types.js";
 
 export const processMonitorJob = async (job: Job<any, any, string>) => {
+  const { pageId, url } = job.data;
 
-    const { pageId, url } = job.data;
+  const page = await Page.findById(pageId);
 
-    const page = await Page.findById(pageId);
+  if (!page || page.status === PAGE_STATUS.PAUSED) {
+    job.log(`Skipping page ${pageId} — not found or paused`);
+    return;
+  }
 
-    if (!page || page.status === PAGE_STATUS.PAUSED) {
-        const msg = `Skipping job for page ${pageId} - Page not found or paused`;
-        job.log(msg);
-        console.log(msg);
-        return;
+  try {
+    // 1. Fetch + extract
+    const { nodes, hash } = await processPage(page);
+
+    job.log(`Extracted ${nodes.length} nodes from ${url}`);
+
+    // 2. Load previous snapshot for comparison
+    const lastSnapshot = await Snapshot.findOne({ pageId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // 3. Quick hash check — если хеш совпал, ничего не изменилось
+    if (lastSnapshot && lastSnapshot.hash === hash) {
+      job.log("No changes detected (hash match)");
+
+      await Page.findByIdAndUpdate(pageId, {
+        lastCheckedAt: new Date(),
+      });
+
+      return;
     }
 
-    try {
+    // 4. Compute structured diff
+    const prevNodes = (lastSnapshot?.nodes ?? []) as PageNode[];
+    const diff = diffNodes(prevNodes, nodes);
 
-        const { html, blocks, normalizedItems, hash } = await processPage(page);
+    job.log(formatDiff(diff));
+    console.log(formatDiff(diff));
 
-        console.log("Extracted items count:", blocks.length);
-        console.log("Normalized items count:", normalizedItems.length);
-        console.log("First normalized items:", normalizedItems.slice(0, 3));
-        job.log("Extracted items count: " + blocks.length);
-        job.log("Normalized items count: " + normalizedItems.length);
-        job.log("First normalized items: " + JSON.stringify(normalizedItems.slice(0, 3), null, 2));
+    // 5. Save snapshot with nodes + diff
+    const snapshot = await Snapshot.create({
+      pageId,
+      nodes,
+      diff,
+      hash,
+    });
 
+    // 6. Reset error state
+    await Page.findByIdAndUpdate(pageId, {
+      lastCheckedAt: new Date(),
+      errorCount: 0,
+      lastErrorAt: null,
+      lastErrorType: null,
+      error: null,
+    });
 
-        const lastSnapshot = await Snapshot.findOne({ pageId })
-        .sort({ createdAt: -1 })
-        .lean();
+    job.log(`Snapshot ${snapshot.id} saved. Changes: +${diff.summary.added} -${diff.summary.removed} ~${diff.summary.changed}`);
+    console.log(`Snapshot ${snapshot.id} saved. Changes: +${diff.summary.added} -${diff.summary.removed} ~${diff.summary.changed}`);
 
-        // ⚡ если ничего не изменилось — выходим
-        if (lastSnapshot && lastSnapshot.hash === hash) {
-        job.log("No changes detected");
-        
-        await Page.findByIdAndUpdate(pageId, {
-            lastCheckedAt: new Date(),
-        });
+    // 7. TODO: if (diff.hasChanges) → send alert / notification
+    // Здесь будет интеграция с уведомлениями:
+    //   - formatDiff(diff) → промпт для LLM → классификация
+    //   - или напрямую отправка diff клиенту через webhook/email
 
-        return;
-        }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
 
+    job.log(`Error monitoring page ${pageId} — ${message}`);
 
-        const snapshot = await Snapshot.create({
-            pageId,
-            items: blocks,
-            normalizedItems,
-            hash
-        });
+    await Snapshot.create({
+      pageId,
+      error: message,
+      errorStack: error instanceof Error ? error.stack : null,
+    });
 
-        await Page.findByIdAndUpdate(pageId, {
-            lastCheckedAt: new Date(),
-            errorCount: 0,
-            lastErrorAt: null,
-            lastErrorType: null,
-            error: null
-        });
+    const newErrorCount = page.errorCount + 1;
 
-        job.log(`Successfully monitored page ${pageId}, page url: ${url}, snapshot id: ${snapshot.id}`);
-        console.log(`Successfully monitored page ${pageId}, page url: ${url}, snapshot id: ${snapshot.id}`);
+    const update: any = {
+      lastCheckedAt: new Date(),
+      errorCount: newErrorCount,
+      lastErrorAt: new Date(),
+      error: message,
+    };
 
-    } catch (error) {
-
-        const message = error instanceof Error ? error.message : String(error);
-
-        job.log(`Error monitoring page ${pageId} - ${message}`);
-
-        await Snapshot.create({
-            pageId,
-            error: message,
-            errorStack: error instanceof Error ? error.stack : null
-        });
-
-        job.log(`Created snapshot for failed page ${pageId}`);
-
-        const newErrorCount = page.errorCount + 1;
-
-        const update: any = {
-            lastCheckedAt: new Date(),
-            errorCount: newErrorCount,
-            lastErrorAt: new Date(),
-            error: message
-        };
-
-        if (newErrorCount >= 5) {
-            update.status = "paused";
-        }
-
-        await Page.findByIdAndUpdate(pageId, update);
-
-        throw error;
+    if (newErrorCount >= 5) {
+      update.status = PAGE_STATUS.PAUSED;
     }
+
+    await Page.findByIdAndUpdate(pageId, update);
+
+    throw error;
+  }
 };

@@ -1,30 +1,24 @@
 import crypto from "crypto";
-
 import { fetchSmart } from "@/backend/services/fetch/fetch.service.js";
-import { extractItems } from "@/backend/services/extract/extract.service.js";
-import { normalizeItems } from "@/backend/services/normalize/normalize.service.js";
+import { extractPageNodes } from "@/backend/services/extract/extractors/page.node.extractor.js";
+import { PageNode } from "@/backend/services/extract/exctract.types.js";
+
+// Pipeline упростился: extractPageNodes уже выдаёт чистые ноды
+// с нормализованными URL и текстом. Отдельный normalize шаг больше не нужен.
 
 export const processPage = async (page: any) => {
-
   const { html } = await fetchSmart(page);
 
-  const blocks = extractItems(html, page.url);
+  const nodes = extractPageNodes(html, page.url);
 
-  const normalizedItems = normalizeItems(blocks);
+  // Хеш считаем по отсортированным нодам — порядок стабилен
+  const hash = generateHash(nodes);
 
-  const hash = generateHash(normalizedItems);
-
-  return {
-    html,
-    blocks,
-    normalizedItems,
-    hash,
-  };
+  return { html, nodes, hash };
 };
 
-const generateHash = (data: any) => {
-  return crypto
+const generateHash = (nodes: PageNode[]): string =>
+  crypto
     .createHash("md5")
-    .update(JSON.stringify(data))
+    .update(nodes.map((n) => n.hash).join("|"))
     .digest("hex");
-};

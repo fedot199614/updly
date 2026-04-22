@@ -1,5 +1,3 @@
-import crypto from "crypto";
-
 export const normalizeText = (text?: string): string => {
   if (!text) return "";
 
@@ -23,11 +21,4 @@ export const normalizeUrl = (url?: string): string | null => {
   } catch {
     return null;
   }
-};
-
-export const generateId = (title: string, url: string): string => {
-  return crypto
-    .createHash("md5")
-    .update(title + url)
-    .digest("hex");
 };
