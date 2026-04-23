@@ -5,7 +5,7 @@ type ChromiumOptions = {
   args?: string[];
 };
 
-export const fetchWithPlaywright = async (url: string, chromiumOptions: ChromiumOptions = { headless: true, args: ["--no-sandbox"] }): Promise<string> => {
+export const fetchWithPlaywright = async (url: string, chromiumOptions: ChromiumOptions = { headless: false, args: ["--no-sandbox"] }): Promise<string> => {
   const browser = await chromium.launch(chromiumOptions);
 
   const page = await browser.newPage();

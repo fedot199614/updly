@@ -1,10 +1,12 @@
+// src/backend/services/monitor.service.ts
+
 import { Page } from "@/backend/db/models/page.model.js";
 import { Snapshot } from "@/backend/db/models/snapshot.model.js";
 import { PAGE_STATUS } from "@/shared/constants/page-status.js";
 import { Job } from "bullmq/dist/esm/classes/job";
 import { processPage } from "@/backend/services/pipline/process-page.pipeline.js";
-import { diffNodes, formatDiff } from "@/backend/services/extract/extractors/page.node.diff.js";
-import { PageNode } from "@/backend/services/extract/exctract.types.js";
+import { diff, formatDiff } from "@/backend/services/extract/diff.js";
+import { ExtractionResult } from "@/backend/services/extract/exctract.types.js";
 
 export const processMonitorJob = async (job: Job<any, any, string>) => {
   const { pageId, url } = job.data;
@@ -18,42 +20,56 @@ export const processMonitorJob = async (job: Job<any, any, string>) => {
 
   try {
     // 1. Fetch + extract
-    const { nodes, hash } = await processPage(page);
+    const { siteType, units, meta, hash } = await processPage(page);
 
-    job.log(`Extracted ${nodes.length} nodes from ${url}`);
+    job.log(`[${siteType}] Extracted ${units.length} units from ${url}`);
+    console.log(`[${siteType}] Extracted ${units.length} units from ${url}`);
 
-    // 2. Load previous snapshot for comparison
+    // 2. Load previous snapshot
     const lastSnapshot = await Snapshot.findOne({ pageId })
       .sort({ createdAt: -1 })
       .lean();
 
-    // 3. Quick hash check — если хеш совпал, ничего не изменилось
+    // 3. Quick hash check
     if (lastSnapshot && lastSnapshot.hash === hash) {
       job.log("No changes detected (hash match)");
-
-      await Page.findByIdAndUpdate(pageId, {
-        lastCheckedAt: new Date(),
-      });
-
+      console.log("No changes detected (hash match)");
+      await Page.findByIdAndUpdate(pageId, { lastCheckedAt: new Date() });
       return;
     }
 
-    // 4. Compute structured diff
-    const prevNodes = (lastSnapshot?.nodes ?? []) as PageNode[];
-    const diff = diffNodes(prevNodes, nodes);
+    // 4. Compute diff
+    const prevResult: ExtractionResult = {
+      siteType: (lastSnapshot as any)?.siteType || "generic",
+      units: (lastSnapshot as any)?.units || [],
+      meta: (lastSnapshot as any)?.meta || {},
+    };
 
-    job.log(formatDiff(diff));
-    console.log(formatDiff(diff));
+    const currResult: ExtractionResult = { siteType, units, meta };
+    const changes = diff(prevResult, currResult);
 
-    // 5. Save snapshot with nodes + diff
+    job.log(changes.formatted);
+    console.log(changes.formatted);
+
+    // 5. Save snapshot
     const snapshot = await Snapshot.create({
       pageId,
-      nodes,
-      diff,
+      siteType,
+      units,
+      meta,
+      diff: {
+        hasChanges: changes.hasChanges,
+        changes: changes.changes,
+        summary: {
+          added: changes.changes.filter((c) => c.type === "added").length,
+          removed: changes.changes.filter((c) => c.type === "removed").length,
+          changed: changes.changes.filter((c) => c.type === "changed").length,
+        },
+      },
       hash,
     });
 
-    // 6. Reset error state
+    // 6. Reset errors
     await Page.findByIdAndUpdate(pageId, {
       lastCheckedAt: new Date(),
       errorCount: 0,
@@ -62,18 +78,18 @@ export const processMonitorJob = async (job: Job<any, any, string>) => {
       error: null,
     });
 
-    job.log(`Snapshot ${snapshot.id} saved. Changes: +${diff.summary.added} -${diff.summary.removed} ~${diff.summary.changed}`);
-    console.log(`Snapshot ${snapshot.id} saved. Changes: +${diff.summary.added} -${diff.summary.removed} ~${diff.summary.changed}`);
+    const s = changes.changes.length;
+    job.log(`Snapshot ${snapshot.id} saved. ${s} change${s !== 1 ? "s" : ""} detected.`);
+    console.log(`Snapshot ${snapshot.id} saved. ${s} change${s !== 1 ? "s" : ""} detected.`);
 
-    // 7. TODO: if (diff.hasChanges) → send alert / notification
-    // Здесь будет интеграция с уведомлениями:
-    //   - formatDiff(diff) → промпт для LLM → классификация
-    //   - или напрямую отправка diff клиенту через webhook/email
+    // 7. TODO: if (changes.hasChanges) → send alert
+    //   formatDiff(siteType, changes.changes) → LLM → classification → webhook/email
 
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
 
     job.log(`Error monitoring page ${pageId} — ${message}`);
+    console.log(`Error monitoring page ${pageId} — ${message}`);
 
     await Snapshot.create({
       pageId,
@@ -82,20 +98,15 @@ export const processMonitorJob = async (job: Job<any, any, string>) => {
     });
 
     const newErrorCount = page.errorCount + 1;
-
     const update: any = {
       lastCheckedAt: new Date(),
       errorCount: newErrorCount,
       lastErrorAt: new Date(),
       error: message,
     };
-
-    if (newErrorCount >= 5) {
-      update.status = PAGE_STATUS.PAUSED;
-    }
+    if (newErrorCount >= 5) update.status = PAGE_STATUS.PAUSED;
 
     await Page.findByIdAndUpdate(pageId, update);
-
     throw error;
   }
 };

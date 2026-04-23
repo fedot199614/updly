@@ -1,6 +1,8 @@
+// src/backend/services/fetch/fetch.service.ts
+
 import axios from "axios";
 import { fetchWithPlaywright } from "@/backend/services/fetch/playwright.service.js";
-import { extractPageNodes } from "@/backend/services/extract/extractors/page.node.extractor.js";
+import { extract } from "@/backend/services/extract/extract.js";
 import { PAGE_FETCH_MODE } from "@/shared/constants/page-fetch-mode.js";
 
 type FetchResult = {
@@ -23,7 +25,7 @@ export const fetchSmart = async (page: any): Promise<FetchResult> => {
   // AUTO mode: пробуем axios, если контента мало — fallback на playwright
   let html = await axios.get(url).then((r) => r.data);
 
-  const nodes = extractPageNodes(html, url);
+  const { units } = extract(html, url);
 
   const isSPA =
     html.includes("__nuxt") ||
@@ -32,7 +34,7 @@ export const fetchSmart = async (page: any): Promise<FetchResult> => {
     html.includes('id="root"') ||
     html.includes('id="app"');
 
-  const shouldFallback = nodes.length < 5 || isSPA;
+  const shouldFallback = units.length < 2 || isSPA;
 
   if (shouldFallback && page.mode === PAGE_FETCH_MODE.AUTO) {
     console.log("Fallback to Playwright:", url);

@@ -22,3 +22,57 @@ export type PageNode = {
   src?: string;          // для картинок
   hash: string;          // md5(text + href + src) — для быстрого сравнения контента
 };
+
+
+// src/backend/services/extract/types.ts
+
+export const SITE_TYPE = {
+  ECOMMERCE: "ecommerce",
+  NEWS: "news",
+  LANDING: "landing",
+  SOCIAL: "social",
+  DIRECTORY: "directory",
+  GENERIC: "generic",
+} as const;
+
+export type SiteType = (typeof SITE_TYPE)[keyof typeof SITE_TYPE];
+
+export type ContentUnit = {
+  id: string;
+  selector: string;
+  category: string;         // "product" | "article" | "post" | "pricing" | "hero" | "section" | "listing" | "block"
+  fields: Record<string, string | null>;
+  hash: string;
+};
+
+export type FieldChange = {
+  field: string;
+  from: string | null;
+  to: string | null;
+};
+
+export type UnitChange = {
+  type: "added" | "removed" | "changed";
+  category: string;
+  title: string | null;
+  fields?: FieldChange[];
+  link?: string | null;
+};
+
+export type ExtractionResult = {
+  siteType: SiteType;
+  units: ContentUnit[];
+  meta: Record<string, string | null>;
+};
+
+export type DiffResult = {
+  siteType: SiteType;
+  hasChanges: boolean;
+  changes: UnitChange[];
+  formatted: string;
+};
+
+export type Strategy = (
+  $: import("cheerio").CheerioAPI,
+  baseUrl: string,
+) => ContentUnit[];
